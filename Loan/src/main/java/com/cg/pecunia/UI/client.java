@@ -1,177 +1,239 @@
 package com.cg.pecunia.ui;
 
 import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Scanner;
 
-import com.cg.pecunia.bean.Loan;
-import com.cg.pecunia.exception.LoanException;
-import com.cg.pecunia.service.LoanService;
-import com.cg.pecunia.service.LoanServiceImpl;
+import com.cg.pecunia.model.Account;
+import com.cg.pecunia.model.Loan;
+import com.cg.pecunia.exception.AccountExcepetion;
+import com.cg.pecunia.service.AccountLoanService;
+import com.cg.pecunia.service.AccountLoanServiceImpl;
+import com.cg.pecunia.service.AccountService;
+import com.cg.pecunia.service.AccountServiceImp;
 
-public class Client {
+public class client {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		try {
-		String id = null;
-		double amount = 0,roi=0;
-		int tenure=0,score=0;
-		Scanner scanner = new Scanner(System.in);
-		Loan loan = null;
-		LoanService loanService = new LoanServiceImpl();
-		List<Loan> list= null;
 		
+		Scanner scanner = new Scanner(System.in);
+		Account account = new Account();
+		Loan loan = null;
+		ArrayList<Loan> list;
+		AccountLoanService accountLoanService = new AccountLoanServiceImpl();
+		AccountService accountService = new AccountServiceImp();
 		while(true) {
+			System.out.println("\n1. Add Account");
+			System.out.println("2. Update Account");
+			System.out.println("3. Delete Account");
+			System.out.println("4. request Loan");
+			System.out.println("5. loan status");
+			System.out.println("6. update balance");
+			System.out.println("7. calculate EMI");
+			System.out.println("8. loan approval list");
+			System.out.println("9. loan rejected list");
+			System.out.println("10. exit");
 			
-			System.out.println("1. Add Details for Loan");
-			System.out.println("2. Loan Approval Status");
-			System.out.println("3. Calculate Loan EMI");
-			System.out.println("4. Loan approval list");
-			System.out.println("5. List Loan Requests");
-			System.out.println("6. Exit");
+			
+			System.out.println("\nenter choice");
 			int choice = scanner.nextInt();
-			switch (choice) {
+			switch(choice) {
+			
 			case 1:
+				try
+				{
+					
+					System.out.println(account);
+					System.out.println("Please Enter account Name");
+					String name = scanner.nextLine();
+					account.setAccountName(name);
+					scanner.nextLine();
+					System.out.println("Please Enter Address");
+					String address = scanner.nextLine();
+					account.setAddress(address);
+					System.out.println("Please Enter Contact");
+					long contact=scanner.nextLong();
+					account.setContactNumber(contact);
+	          	
+					
+				
+					int accnumber = accountService.addAccount(account); 
+					
+					System.out.println("accountNumber = "+accnumber);
+					
+					
+				
+				}
+				catch(AccountExcepetion e)
+				{
+					System.err.println(e.getMessage());
+				}
+				break;
+			
+			case 2:
+				try
+				{
+					System.out.println(account);
+					System.out.println("Please Enter account Number");
+					int accountNumber=scanner.nextInt();
+					scanner.nextLine();
+				
+					System.out.println("Please Enter account Name");
+					String name = scanner.nextLine();
+				      account.setAccountName(name);
+					System.out.println("Please Enter Address");
+					String address = scanner.nextLine();
+					account.setAddress(address);
+					System.out.println("Please Enter Contact");
+					long contact=scanner.nextLong();
+					account.setContactNumber(contact);
+					account=accountService.updateAccountByNumber(accountNumber,account);
+					System.out.println("updated details");
+					System.out.println("name = "+name);
+					System.out.println("contact = "+contact);
+					System.out.println("address = "+address);
+				}
+				catch(AccountExcepetion e)
+				{
+					System.err.println(e.getMessage());
+				}
+				break;
+		
+			case 3:
+				try
+				{
+					System.out.println("Please Enter account number");
+					int accountNumber=scanner.nextInt();
+					
+					System.out.println("deleted account sucessfully! "+accountService.deleteAccountByNumber(accountNumber));
+					
+					
+				}
+				catch(AccountExcepetion e)
+				{
+					System.err.println(e.getMessage());
+				}break;
+				
+			case 4: 
 				try {
+					loan = new Loan();
+					System.out.println("enter account number");
+					int accountNumber = scanner.nextInt();
+					loan.setAccountNumber(accountNumber);
+					System.out.println("enter loan amount");
+					double amount = scanner.nextDouble();
+					loan.setAmount(amount);
+					System.out.println("enter tenure");
+					int tenure = scanner.nextInt();
+					loan.setTenure(tenure);
+					System.out.println("enter credit score");
+					int creditScore = scanner.nextInt();
+					loan.setTenure(tenure);
+					loan = accountLoanService.loanRequest(accountNumber, amount, tenure, creditScore);
+					System.out.println("requested loan of "+loan.getAmount()+" for "+loan.getTenure()+" years");
+				}
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
+			
+			case 5: 
+				try {
+					if(accountLoanService.loanApprovalStatus(loan))
+						System.out.println("loan approved");
+					else
+						System.out.println("loan not approved");
 					
-					try {
-					System.out.println("Enter Exsisting Account Number");
-					 id = scanner.next();
-					 if(!loanService.validateNumber(id))
-							 throw new LoanException("Invalid account Id : Id should be 12 digit");
-
-					}
-				catch(LoanException e) {
-						System.err.println("\n"+e.getMessage()+"\n");
-					}
-					try {
-					System.out.println("Enter Loan amount");
-					amount = scanner.nextDouble();
-					if(!loanService.validateAmount(amount))
-						throw new LoanException("Invalid Loan amount : Amount should be greater than 1000");
-					}
-					catch(LoanException e) {
-						System.err.println("\n"+e.getMessage()+"\n");
-					}
-					try {
-					System.out.println("Enter tenure in months (above 12 months)");
-					tenure = scanner.nextInt();
-					if(!loanService.validateTenure(tenure))
-						 throw new LoanException("Invalid tenure: entered value is not valid");
-					}
-					catch(LoanException e) {
-						System.err.println("\n"+e.getMessage()+"\n");
-					}
-					try {
-					System.out.println("Enter rate of interest (above 7.0%)");
-					roi = scanner.nextDouble();
-					if(!loanService.validateRateOfInterest(roi))
-						throw new LoanException("Invalid Interest rate : Rate of interest should be  in range of 4% to 15%");
-					}
-					catch(LoanException e) {
-						System.err.println("\n"+e.getMessage()+"\n");
-					}
-					try {
-					System.out.println("Enter credit score (above 100)");
-					score = scanner.nextInt();
-					if(!loanService.validateCreditScore(score))
-						throw new LoanException("Invalid credit score : credit score should be in range of 100 to 999");
-					}
-					catch(LoanException e) {
-						System.err.println("\n"+e.getMessage()+"\n");
-					}
-					
-					System.out.println("proceed (Y/N)?");
-					char proceed = scanner.next().charAt(0);
-					if(proceed == 'Y' || proceed=='y') {
-					loan = loanService.addLoanDetails(id, amount, tenure, roi, score);
-					loan.setAccountBalance(10000);
-					String sid = loanService.createLoanRequest(loan);
-					System.out.println("(Account Number:"+sid+") Details added sucessfully for loan");	
-					System.out.println("Requested for loan of "+ loan.getAmount()+" for "+loan.getTenure()+" months");
-					}
-					
-					else {
-						if(proceed == 'N' || proceed =='n')
-							break;
-						System.err.println("enter valid option");
-					}
-							
+				}
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
+			
+			case 6: 
+				try {
+					double balance = accountLoanService.updateBalance(loan);
+					System.out.println("updated balance = "+balance);
 	
 				}
-				catch (LoanException le) {
-					System.err.println("\n"+le.getMessage()+"\n");
-					//le.printStackTrace(); 
-				}
-				break;
-				
-			case 2:
-				try {
-					System.out.println("(Account Number:"+loan.getAccountId()+") Loan Status = "+loanService.loanApprovalStatus(loan,loan.getAccountId()));
-					
-				}
-				catch(LoanException le) {
-					System.err.println("\n"+le.getMessage()+"\n");
-				}
-				break;
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
 			
-			case 3:
+			case 7:
 				try {
-					System.out.println("(Account Number:"+loan.getAccountId()+") emi = "+loanService.calculateEmiForLoan(loan));
-					
+					double emi = accountLoanService.calculateEmi(loan);
+					System.out.println("emi = "+emi);
 				}
-				catch(LoanException le) {
-					System.err.println("\n"+le.getMessage()+"\n");
-				}
-				break;
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
 				
-			case 4:
-				try {
-					list = new ArrayList<>();
-					list = loanService.loanRequestList();
-					System.out.println("Account ID\t\tTenure\t\tLoan Amount\t\tRate Of Interest\t\tCredit Score\t\tLoan Status\t\tAccount Balance\t\tEMI\n");
-					list.stream().forEach(p -> System.out.println(p));
-					
-					
-					
-				}
-				catch(LoanException le) {
-					System.err.println("\n"+le.getMessage()+"\n");
-				}
-				break;
-				
-			
-			case 5:
+			case 8: 
 				try {
 					list = new ArrayList<Loan>();
-					list = loanService.loanApprovalList(loan);
-					
-					System.out.println("Account ID\t\tTenure\t\tLoan Amount\t\tRate Of Interest\t\tCredit Score\t\tLoan Status\t\tAccount Balance\t\tEMI\n");
-					list.stream().forEach(p -> System.out.println(p));
+					list = accountLoanService.loanApprovalList(loan);
+					list.stream().forEach(l -> System.out.print(l.getAccountNumber()+" "+l.getAmount()+" "+l.isLoanStatus()+"\n"));
 					
 				}
-				catch(LoanException le) {
-					System.err.println("\n"+le.getMessage()+"\n");
-				}
-				break;
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
 			
-			case 6:
-				System.out.println("Thank You! :) ");
-				return;
+			case 9: 
+				try {
+					list = new ArrayList<Loan>();
+					list = accountLoanService.loanRejectList(loan);
+					//list.stream().forEach(l -> System.out.print(l.getTenure()+" "+l.getAccountNumber()+" "+l.getBalance()+" "+l.getAmount()+"\n "));
 
-			default:
-				System.out.println("enter correct choice");
+					
+				}
+				catch(AccountExcepetion ae) {
+					//ae.printStackTrace();
+					System.err.println(ae.getMessage());
+				}break;
+			
+			case 10:
+				System.out.println("thank you! :)");
+				return;
+				
+			/*case 6:
+				try
+				{
+					account = new Account();
+					System.out.println("Please Enter account Name");
+					String name = scanner.nextLine();
+					scanner.nextLine();
+					account.setAccountName(name);
+					System.out.println("Please Enter Address");
+					String address = scanner.nextLine();
+					account.setAddress(address);
+					System.out.println("Please Enter Contact");
+					long contact=scanner.nextLong();
+					account.setConactNumber(contact);
+					account.setBalance(0);
+					
+					int accnumber = accountLoanService.addAccount(account); 
+					System.out.println("accountNumber = "+accnumber);
+					
+					
+				
+				}
+				catch(AccountExcepetion ae)
+				{
+					System.err.println(ae.getMessage());
+				}
 				break;
+			*/
+			default:
+				System.out.println("enter vaild choice");
 			}
-		}
-		}
-		catch(InputMismatchException e) {
-			System.err.println("\nenter valid number (1-6)\n");
+		
+
 		}
 
 	}
 }
-
-
